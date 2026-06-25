@@ -16,7 +16,3 @@ cv2.imwrite(
 )
 
 print("saved")
-# print(result)
-
-# print(type(img))
-# print(img.shape)
