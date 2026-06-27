@@ -9,9 +9,12 @@ model = YOLO("yolo26n.pt")
 
 results = model(img)
 result_img = results[0].plot()
+
+# process per box
 for box in results[0].boxes:
-    x1, y1, x2, y2 = map(int, box.xyxy[0]) 
-    print(x1, y1, x2, y2)
+    class_id = int(box.cls)
+    name = results[0].names[class_id]
+    print(name)
 
 cv2.imwrite(
     "outputs/kitti_detection.png",
