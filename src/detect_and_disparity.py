@@ -15,45 +15,66 @@ right_gray = cv2.imread(
     cv2.IMREAD_GRAYSCALE
 )
 
+# stereo matching
 stereo = cv2.StereoSGBM_create(
     minDisparity=0,
-    numDisparities=16 * 8,
-    blockSize=5
+    numDisparities=16*8,
+    blockSize=9
 )
-
 disparity = stereo.compute(
     left_gray,
     right_gray
 )
 
+# convert disparity image
+disp_vis = cv2.normalize(
+    disparity,
+    None,
+    0,
+    255,
+    cv2.NORM_MINMAX
+)
+
+disp_vis = disp_vis.astype("uint8")
+
+cv2.imwrite(
+    "outputs/disparity.png",
+    disp_vis
+)
+
+# detection
 model = YOLO("yolo26n.pt")
-
 results = model(left_color)
-
-result_img = results[0].plot()
+result_image = results[0].plot()
 
 for box in results[0].boxes:
-
     class_id = int(box.cls)
     name = results[0].names[class_id]
 
     if name != "car":
         continue
 
+    confidence = float(box.conf)
     x1, y1, x2, y2 = map(int, box.xyxy[0])
-
     cx = int((x1 + x2) / 2)
     cy = int((y1 + y2) / 2)
 
     disp = disparity[cy, cx] / 16.0
 
+    if disp > 0:
+        depth = (721.5377 * 0.54) / disp
+    else:
+        disp = -1
+
     print(
+        f"confidence={confidence:.3f}"
         f"car center=({cx},{cy}) "
         f"disparity={disp:.2f}"
+        f"depth={depth:.2f}m"
     )
 
     cv2.circle(
-        result_img,
+        result_image,
         (cx, cy),
         5,
         (0, 0, 255),
@@ -62,7 +83,7 @@ for box in results[0].boxes:
 
 cv2.imwrite(
     "outputs/car_disparity.png",
-    result_img
+    result_image
 )
 
 print("saved")
