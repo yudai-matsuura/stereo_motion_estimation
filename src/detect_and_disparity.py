@@ -73,6 +73,16 @@ for box in results[0].boxes:
         f"depth={depth:.2f}m"
     )
 
+    cv2.putText(
+        result_image,
+        f"{depth:.1f}m",
+        (cx + 10, cy),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.5,
+        (0, 0, 255),
+        1
+    )
+
     cv2.circle(
         result_image,
         (cx, cy),
