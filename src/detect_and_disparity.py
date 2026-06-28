@@ -1,4 +1,5 @@
 from ultralytics import YOLO
+import numpy as np
 import cv2
 
 left_color = cv2.imread(
@@ -59,7 +60,12 @@ for box in results[0].boxes:
     cx = int((x1 + x2) / 2)
     cy = int((y1 + y2) / 2)
 
-    disp = disparity[cy, cx] / 16.0
+    # disp = disparity[cy, cx] / 16.0
+
+    # Use the median value within the BBOX
+    roi = disparity[y1:y2, x1:x2] / 16.0
+    valid_disp = roi[roi > 0]
+    disp = np.median(valid_disp)
 
     if disp > 0:
         depth = (721.5377 * 0.54) / disp
