@@ -16,6 +16,17 @@ right_gray = cv2.imread(
     cv2.IMREAD_GRAYSCALE
 )
 
+gt = cv2.imread(
+    "data/gt/000000_10.png",
+    cv2.IMREAD_UNCHANGED
+)
+
+gt_disp = gt.astype(np.float32) / 256.0
+
+print(gt_disp.dtype)
+print(gt_disp.min())
+print(gt_disp.max())
+
 # stereo matching
 stereo = cv2.StereoSGBM_create(
     minDisparity=0,
@@ -62,10 +73,24 @@ for box in results[0].boxes:
 
     # disp = disparity[cy, cx] / 16.0
 
+    # disp_gt = gt_disp[cy, cx]
+
     # Use the median value within the BBOX
     roi = disparity[y1:y2, x1:x2] / 16.0
     valid_disp = roi[roi > 0]
     disp = np.median(valid_disp)
+
+    gt_roi = gt_disp[y1:y2, x1:x2]
+    valid_gt = gt_roi[gt_roi > 0]
+    disp_gt = np.median(valid_gt)
+
+    error = abs(disp - disp_gt)
+
+    print(
+        f"est={disp:.2f}, "
+        f"gt={disp_gt:.2f}, "
+        f"error={error:.2f}"
+    )
 
     if disp > 0:
         depth = (721.5377 * 0.54) / disp
